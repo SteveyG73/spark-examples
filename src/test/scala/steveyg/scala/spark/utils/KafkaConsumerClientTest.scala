@@ -2,15 +2,16 @@ package steveyg.scala.spark.utils
 
 import org.scalatest._
 
-class KafkaConsumerClientTest extends FlatSpec with Matchers {
 
+
+class KafkaConsumerClientTest extends FlatSpec with Matchers {
 
   "A Kafka consumer" should " pick up it's default consumer properties from a resources file" in {
     val brokerList = "blah:9094"
     val groupId = "nothing"
     val password = "test1234"
     val resourcesFileTest = KafkaConsumerClient.readProperties(brokerList,groupId,password)
-    resourcesFileTest.getProperty("") should not be null
+    resourcesFileTest.getProperty("security.protocol") should not be null
   }
 
   it should " throw an exception if the credentials are invalid" in {
@@ -18,8 +19,24 @@ class KafkaConsumerClientTest extends FlatSpec with Matchers {
     val groupId = "nothing"
     val password = "test1234"
 
-    a [Exception] should be thrownBy {
+    an [Exception] should be thrownBy {
       val badCreds = new KafkaConsumerClient(brokerList, groupId, password)
+      badCreds.connect("test1,test2")
     }
+  }
+
+  it should " return some data from a valid broker with valid credentials" in {
+    val brokerList = "ark-03.srvs.cloudkafka.com:9094,ark-01.srvs.cloudkafka.com:9094,ark-02.srvs.cloudkafka.com:9094"
+    val groupId = "unit-testing"
+    val password = "kafka1234"
+    val topic = "twj66f14-default"
+
+    val getData = new KafkaConsumerClient(brokerList,groupId,password)
+
+    getData.connect(topic)
+
+    val records = getData.getMessageBatch
+
+    records should not be empty
   }
 }
