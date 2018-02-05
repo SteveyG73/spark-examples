@@ -43,10 +43,14 @@ class KafkaConsumerClient(brokerList: String, groupId: String, password: String)
   }
 
   def getMessageBatch : List[(String,String)] = {
-    val records : ConsumerRecords[String,String] = consumer.poll(10000)
+    val records : ConsumerRecords[String,String] = consumer.poll(10)
 
     records.asScala.toList.map(r => (r.key(),r.value()))
 
+  }
+
+  def disconnect : Unit = {
+    consumer.close()
   }
 
 }
