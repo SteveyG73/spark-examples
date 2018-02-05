@@ -26,7 +26,7 @@ class KafkaConsumerClientTest extends FlatSpec with Matchers {
   }
 
   it should " return some data from a valid broker with valid credentials" in {
-    val brokerList = "ark-03.srvs.cloudkafka.com:9094,ark-01.srvs.cloudkafka.com:9094,ark-02.srvs.cloudkafka.com:9094"
+    val brokerList = "localhost:9094"
     val groupId = "unit-testing"
     val password = "kafka1234"
     val topic = "twj66f14-default"
