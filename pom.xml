@@ -48,18 +48,18 @@
         <dependency>
             <groupId>org.specs</groupId>
             <artifactId>specs</artifactId>
-            <version>1.2.5</version>
+            <version>1.4.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalactic</groupId>
             <artifactId>scalactic_2.11</artifactId>
-            <version>LATEST</version>
+            <version>3.0.5</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.11</artifactId>
-            <version>LATEST</version>
+            <version>3.0.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>

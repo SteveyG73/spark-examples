@@ -61,7 +61,7 @@ object SparkKafkaStreaming extends SimpleJob {
     val recordRate = df.count()/duration
 
     print("\b"*recordRate.toString.length + recordRate.toString)
-    //TODO Implement database write
+    //TODO Implement write back to new topic
 
   })
 
