@@ -2,7 +2,7 @@ package steveyg.scala.spark.example3
 
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import steveyg.scala.spark.utils.SimpleJob
+import steveyg.scala.spark.utils.{KafkaConsumerClient, KafkaProducerClient, SimpleJob}
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.rdd.RDD
@@ -23,7 +23,7 @@ object SparkKafkaStreaming extends SimpleJob {
   val outDir = args(2)
   val duration = 10
 
-  val  conf = new SparkConf().setMaster("local[2]").setAppName("Streaming Example")
+  val conf = new SparkConf().setMaster("local[2]").setAppName("Streaming Example")
 
   val ssc = new StreamingContext(conf, Seconds(duration))
 
@@ -31,16 +31,13 @@ object SparkKafkaStreaming extends SimpleJob {
 
 
   val kafkaParams = Map[String, Object](
-    "bootstrap.servers" -> "ark-03.srvs.cloudkafka.com:9094,ark-01.srvs.cloudkafka.com:9094,ark-02.srvs.cloudkafka.com:9094",
+    "bootstrap.servers" -> "localhost:9092",
     "key.deserializer" -> classOf[StringDeserializer],
     "value.deserializer" -> classOf[StringDeserializer],
     "group.id" -> "linux-laptop-stream-1",
     "auto.offset.reset" -> "latest",
     "enable.auto.commit" -> (false: java.lang.Boolean),
-    "security.protocol" -> "SSL",
-    "ssl.truststore.location" -> "/var/private/ssl/client.truststore.jks",
-    "ssl.truststore.password" -> password
-
+    "security.protocol" -> "PLAINTEXT"
   )
 
   val stream = KafkaUtils.createDirectStream[String,String] (
@@ -49,8 +46,7 @@ object SparkKafkaStreaming extends SimpleJob {
     Subscribe[String,String](topics,kafkaParams)
   )
 
-
-  print("Records per second: 0")
+  val producer = new KafkaProducerClient("localhost:9092","metrics","")
   stream.foreachRDD(rdd => {
     val sql = SparkSession.builder().config(rdd.sparkContext.getConf).getOrCreate()
 
@@ -61,11 +57,14 @@ object SparkKafkaStreaming extends SimpleJob {
     val recordRate = df.count()/duration
 
     print("\b"*recordRate.toString.length + recordRate.toString)
-    //TODO Implement write back to new topic
+
+    producer.sendMessageBatch(List(("recordate",recordRate.toString)))
 
   })
 
   ssc.start()
 
   ssc.awaitTermination()
+
+  producer.disconnect
 }
