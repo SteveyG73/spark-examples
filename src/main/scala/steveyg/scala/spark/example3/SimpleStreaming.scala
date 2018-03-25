@@ -10,30 +10,26 @@ import scala.concurrent.duration._
 
 object SimpleStreaming extends App {
 
+  val duration = 10
+
   val conf: SparkConf = new SparkConf().setMaster("local[2]").setAppName("Simple Streaming Example").setExecutorEnv("spark.executor.memory","512M")
 
   val spark = SparkSession.builder().config(conf).getOrCreate()
 
   val events = spark.readStream.format("kafka").option("kafka.bootstrap.servers", "localhost:9092")
-    .option("subscribe", "unit-testing")
+    .option("subscribe", "stream1")
     .option("startingoffsets", "latest")
-    .option("maxOffsetsPerTrigger", 1)
     .load
+    .withColumn("duration", lit(duration)).toDF()
 
 
-  val results = events.
-    select(
-      events("key") cast "string",   // deserialize keys
-      events("value") cast "string", // deserialize values
-      events("topic"),
-      events("partition"),
-      events("offset"))
+  val results =  events.groupBy("duration").agg(count(lit(1)).alias("record_count")).selectExpr("record_count/duration as rps")
 
   results.writeStream
     .format("console")
     .option("truncate", false)
-    .trigger(Trigger.ProcessingTime(10.seconds))
-    .outputMode(OutputMode.Append)
+    .trigger(Trigger.ProcessingTime(duration.seconds))
+    .outputMode(OutputMode.Complete())
     .queryName("from-kafka-to-console")
     .start
 
